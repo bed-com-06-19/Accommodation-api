@@ -1,4 +1,4 @@
-const user = {
+const post = {
     id: "",
     creator: "",
     comments: "",
