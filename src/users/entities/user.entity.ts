@@ -1,6 +1,6 @@
 
 import { UserRoles } from "src/utility/common/user-roles.enum";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from "typeorm";
 
 @Entity('users')
 export class UserEntity {
@@ -9,12 +9,16 @@ export class UserEntity {
     id:number;
     @Column()
     name:string;
-    @Column()
+    @Column({unique:true})
     email:string;
-    @Column()
+    @Column({select:false})
     passoword:string;
     @Column({ default:UserRoles.USER })
     roles: string;
+    @CreateDateColumn()
+    createdAt:Timestamp;
+    @UpdateDateColumn()
+    updatedAt:Timestamp;
 
 
 }
