@@ -1,5 +1,5 @@
 
-import { UserRoles } from "src/utility/common/user-roles.enum";
+import { Roles} from "src/utility/common/user-roles.enum";
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from "typeorm";
 
 @Entity('users')
@@ -11,11 +11,21 @@ export class UserEntity {
     name:string;
     @Column({unique:true})
     email:string;
-    @Column({select:false})
-    passoword:string;
-    @Column({ default:UserRoles.USER })
+    @Column({ select: false })
+    password:string;
+    
+    @Column({ default: 'USER' })
     roles: string;
-    @CreateDateColumn()
+  
+    get rolesArray(): string[] {
+      return this.roles.split(',');
+    }
+  
+    set rolesArray(roles: string[]) {
+      this.roles = roles.join(',');
+    }
+    // @Column({type:'enum',enum:Roles,arrays:true,default:[Roles.USER]})
+     @CreateDateColumn()
     createdAt:Timestamp;
     @UpdateDateColumn()
     updatedAt:Timestamp;

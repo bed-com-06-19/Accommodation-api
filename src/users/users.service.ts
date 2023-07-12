@@ -5,7 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UserSignUpDto} from './dto/user-singup.dto';
-import {hash} from 'bcrypt'
+import {hash, compare} from 'bcrypt'
+import { UserSignInDto } from './dto/user-singin.dto';
+import { sign } from 'jsonwebtoken';
 
 @Injectable()
 export class UsersService {
@@ -21,9 +23,36 @@ export class UsersService {
      userSignUpDto.password= await hash(userSignUpDto.password,10)
     let user=this.usersRepository.create(userSignUpDto);
     user = await this.usersRepository.save(user);
-    delete user.passoword
+    delete user.password
     return user;
   }
+
+  async signin(userSignInDto: UserSignInDto):Promise<UserEntity> {
+    const userExist = await this.usersRepository
+      .createQueryBuilder('users')
+      .addSelect('users.password')
+      .where('users.email = :email', { email: userSignInDto.email })
+      .getOne();
+      if(!userExist) throw new BadRequestException('Bad credentials')
+      const matchPassword= await compare(userSignInDto.password,userExist.password);
+       if(!matchPassword) throw new BadRequestException('Bad credentials');
+       delete userExist.password;   
+       return userExist;
+  }
+  // async signin(userSignInDto: UserSignInDto) {
+  //   const userExist = await this.usersRepository
+  //     .createQueryBuilder('users')
+  //     .addSelect('users.password')
+  //     .where('users.email = :email', { email: userSignInDto.email })
+  //     .getOne();
+  
+  //   if (userExist) {
+  //     return userExist;
+  //   } else {
+  //     return { error: 'User not found' };
+  //   }
+  // }
+
 
   
   create(createUserDto: CreateUserDto) {
@@ -48,4 +77,9 @@ export class UsersService {
   async findUserByEmail(email:string){
     return await this.usersRepository.findOneBy({email});
   }
+  async accessToken(user:UserEntity):Promise<string>{
+    return sign({id:user.id,email:user.email},process.env.ACCESS_TOKEN_SECRET_KEY,{expiresIn:process.env.ACCESS_TOKEN_EXPIRE_TIME})
+  }
 }
+
+
